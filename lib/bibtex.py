@@ -56,13 +56,13 @@ class BibTexEntry(object):
         """ returns the entrie's outlet """
         outlet = []
         outlet.append( self.entry.get('journal', '') or self.entry.get('booktitle', '') or "" )
+        if 'isbn' in self.entry:
+            outlet.append("ISBN: %(isbn)s" % self.entry )
         outlet.append( self.entry.get('publisher', '') )
         if 'pages' in self.entry:
             outlet.append( "pages %(pages)s" %  self.entry )
         if 'volume' in self.entry and 'number' in self.entry:
             outlet.append("%(volume)s(%(number)s)" % self.entry )
-
-
         # cleanup entries
         outlet = filter(None, outlet)
         return ", ".join(outlet)

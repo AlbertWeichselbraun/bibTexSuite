@@ -22,7 +22,10 @@ from optparse import OptionParser
 from glob import glob
 from os import stat
 
-LIB_DIR       = os.path.join(os.path.dirname(__file__), "lib")
+if os.path.islink(__file__):
+    LIB_DIR       = os.path.join(os.path.dirname( os.readlink(__file__)), "lib")
+else:
+    LIB_DIR       = os.path.join(os.path.dirname(__file__), "lib")
 
 USER_PREF_DIR = os.path.expanduser("~/.bibTexSuite")
 CONFIG_FILE   = os.path.join( USER_PREF_DIR, "searchconfig.py" )
