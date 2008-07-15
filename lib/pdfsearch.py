@@ -19,7 +19,6 @@
 
 from os import walk
 from os.path import join, basename
-from sys import stderr
 
 
 class PdfSearch(object):
@@ -44,7 +43,6 @@ class PdfSearch(object):
             the conditions self.match
         """
         fqn = bibtex_entry.getFilename(extension=".pdf")
-        stderr.write(fqn+"\n")
         for f in self.search_tree:
             if self.match(f, fqn):
                 return f
@@ -76,8 +74,4 @@ if __name__ == '__main__':
             print ps.search_tree
 
     main()
-
-
-
-            
 

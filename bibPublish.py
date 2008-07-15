@@ -28,28 +28,8 @@ if os.path.islink(__file__):
 else:
     LIB_DIR       = os.path.join(os.path.dirname(__file__), "lib")
 
-USER_PREF_DIR = os.path.expanduser("~/.bibTexSuite")
-CONFIG_FILE   = os.path.join( USER_PREF_DIR, "publishconfig.py" )
-TEMPLATE_PATH = os.path.join( USER_PREF_DIR, "templates" )
-USER_CACHE    = os.path.join( USER_PREF_DIR, "cache" )
-
-
-def _create_config():
-    """ creates the cache/configuration files """
-    if not os.path.exists(USER_PREF_DIR): os.mkdir(USER_PREF_DIR)
-    if not os.path.exists(USER_CACHE)    : os.mkdir(USER_CACHE)
-    if not os.path.exists(CONFIG_FILE):
-        f=open( CONFIG_FILE, "w")
-        f.write("# bibPublish example config file\n\n" )
-        f.close()
-
-def _read_config():
-    """ reads the configuration file """
-    if not os.path.exists(CONFIG_FILE) or not os.path.exists(USER_CACHE):
-        _create_config()
-    path.append(USER_PREF_DIR)
-    path.append(LIB_DIR)
-    
+path.append(LIB_DIR)
+from config import TEMPLATE_PATH, USER_CACHE, read_config
 
 
 def parse_options():
@@ -78,7 +58,6 @@ def get_matching_bibtex_entries( search_terms, bibtex_files ):
         result += [ b for b in cacheRetrieve( USER_CACHE, fname, _get_bib) if search_terms is None or search_terms in b ]
 
     return result
-
 
 def publish( publish_dir, template_path, pdf_path,  bibtex_entries):
     """ publishes the given bibtex_entries in publish_dir using the template specified in
@@ -114,7 +93,7 @@ def publish( publish_dir, template_path, pdf_path,  bibtex_entries):
 # =
 # ===============================================================================
 
-_read_config()
+read_config( LIB_DIR )
 from publishconfig import BIB_PUBLISH_OUTPUT_DIR, DEFAULT_TEMPLATE, BIB_PUBLISH_FILES, PDF_SEARCH_PATH
 from template import Template
 from bibtex import BibTex

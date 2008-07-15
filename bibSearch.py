@@ -26,31 +26,12 @@ if os.path.islink(__file__):
     LIB_DIR       = os.path.join(os.path.dirname( os.readlink(__file__)), "lib")
 else:
     LIB_DIR       = os.path.join(os.path.dirname(__file__), "lib")
-
-USER_PREF_DIR = os.path.expanduser("~/.bibTexSuite")
-CONFIG_FILE   = os.path.join( USER_PREF_DIR, "searchconfig.py" )
-USER_CACHE    = os.path.join( USER_PREF_DIR, "cache" )
+path.append( LIB_DIR )
+from config import USER_CACHE, read_config
 
 OUTPUT_FORMAT = { 'citation' : 'getCitation',
                   'wikipedia': 'getWikipediaCitation',
                   'bibtex'   : 'getBibTexCitation' }
-
-def _create_config():
-    """ creates the cache/configuration files """
-    if not os.path.exists(USER_PREF_DIR): os.mkdir(USER_PREF_DIR)
-    if not os.path.exists(USER_CACHE)    : os.mkdir(USER_CACHE)
-    if not os.path.exists(CONFIG_FILE):
-        f=open( CONFIG_FILE, "w")
-        f.write("# bibSearch example config file\n\n# default output format (citation, bibtex, wikipedia)\nDEFAULT_OUTPUT_FORMAT = 'citation'\n\nDEFAULT_BIB_SEARCH_PATH = ['%s', ]\n" % (os.path.expanduser("~")) )
-        f.close()
-
-def _read_config():
-    """ reads the configuration file """
-    if not os.path.exists(CONFIG_FILE) or not os.path.exists(USER_CACHE):
-        _create_config()
-    path.append(USER_PREF_DIR)
-    path.append(LIB_DIR)
-    
 
 
 def parse_options():
@@ -95,7 +76,7 @@ def get_matching_bibtex_entries( search_terms, search_path ):
 # =
 # ===============================================================================
 
-_read_config()
+read_config( LIB_DIR )
 from searchconfig import DEFAULT_BIB_SEARCH_PATH, DEFAULT_OUTPUT_FORMAT
 from bibtex import BibTex
 from cache import cacheRetrieve

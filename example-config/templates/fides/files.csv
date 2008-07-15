@@ -1,0 +1,3 @@
+pdf,"<a href='%(fname)s'><img src='icons/pdf.png' border='0'/></a>"
+abstract,"<a href='%(fname)s'>Abstract</a>"
+bibtex,"<a href='%(fname)s'>BibTeX</a>"
