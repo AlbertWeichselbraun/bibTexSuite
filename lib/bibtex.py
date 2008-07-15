@@ -24,6 +24,7 @@ BIBTEX_TEST_FILE = "self.bib"
 
 
 cleanup = lambda x: x.replace("{", "").replace("}", "").replace("\"", "")
+get_longest_word = lambda s: max( [ (len(w), w) for w in s.split() ] )[1]
 
 class BibTexEntry(object):
     """ handles a single bibtex entry """
@@ -33,6 +34,15 @@ class BibTexEntry(object):
         self.orig_entry = dict( [ (key, cleanup(_bibtex.get_native(value))) for key, value in entries.iteritems() ] )
         self.entry = dict( [ (key, cleanup(value)) for key, value in self.orig_entry.iteritems() ] )
 
+    def __cmp__(self, o):
+        """ sorts bibtex entries based on the publishing year """
+        sy, oy = self.entry.get('year',0), o.entry.get('year', 0)
+        if sy == oy:
+            return 0
+        elif sy > oy:
+            return 1
+        else:
+            return -1
 
     def __contains__(self, search_terms):
         """ returns true if any of the BibTexEntry's fields contains the given string """
@@ -43,6 +53,29 @@ class BibTexEntry(object):
     def getAuthor(self):
         """ returns the author for the given entry """
         return self.entry.get('author', '')
+
+
+    def getFirstAuthorSurname(self):
+        """ returns the surename of the first author """
+        return self.entry.get('author').split(', ', 1)[0]
+
+
+    def getFilename(self, extension=""):
+        """ returns the filename for the given entry 
+            (or the ieee-filename if possible) 
+        """
+        if 'file' in self.entry:
+            return self.entry['file'].split(":")[1]
+        else:
+            return self.getIEEEFilename()+extension 
+    
+
+    def getIEEEFilename(self):
+        """ composes the IEEE filename for the entry:
+              surname-titleword200x.pdf 
+        """
+        s="%s-%s%s" % (self.getFirstAuthorSurname(), get_longest_word(self.getTitle()), self.getYear())
+        return s
 
 
     def getTitle(self):
@@ -87,8 +120,8 @@ class BibTexEntry(object):
 
     def getBibTexCitation(self, filter_term = None):
         """ returns the bibTexCitation for the given item """
-        entries = [ "   %s=%s" % (key, value) for key, value in self.orig_entry.iteritems() ] 
-        return "@%s{%s\n%s\n}" % ( self.type.upper(), self.key, "\n".join(entries) )
+        entries = [ "   %s={%s}" % (key, value) for key, value in self.orig_entry.iteritems() ] 
+        return "@%s{%s\n%s\n}" % ( self.type.upper(), self.key, ",\n".join(entries) )
 
 
     def __str__(self):
@@ -143,10 +176,14 @@ if __name__ == '__main__':
             self.assertFalse( ('Julius',) in b )
 
             print b.getCitation()
+            print "xxxx", b.entry
+
+        def testGetSurname(self):
+            """" tests whether the getsurname function works """
+            b = BibTexEntry( self.bibtex_entry )
+            print b, b.getFirstAuthorSurname()
+            self.assertEqual( 'Dickinger', b.getFirstAuthorSurname() )
 
     main()
 
-
-
-            
 

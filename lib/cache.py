@@ -23,6 +23,7 @@ import os
 from cPickle import dump, load
 from md5 import md5
 from stat import ST_MTIME
+from warnings import warn
 
 def cacheRetrieve( cachedir, fname, fn ):
     """ checks whether fname or cache_dir is newer
@@ -38,6 +39,9 @@ def cacheRetrieve( cachedir, fname, fn ):
         pass
 
     obj = fn(fname)
-    dump( obj, open(cacheFile, "w") )
+    try:
+        dump( obj, open(cacheFile, "w") )
+    except IOError:
+        warn("Cannot write cache file: '%s'" % cacheFile)
     return obj
 
