@@ -27,7 +27,7 @@ if os.path.islink(__file__):
 else:
     LIB_DIR       = os.path.join(os.path.dirname(__file__), "lib")
 path.append( LIB_DIR )
-from config import USER_CACHE, read_config
+from bibconfig import USER_CACHE, read_config
 
 OUTPUT_FORMAT = { 'citation' : 'getCitation',
                   'wikipedia': 'getWikipediaCitation',

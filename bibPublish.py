@@ -29,7 +29,8 @@ else:
     LIB_DIR       = os.path.join(os.path.dirname(__file__), "lib")
 
 path.append(LIB_DIR)
-from config import TEMPLATE_PATH, USER_CACHE, read_config
+print LIB_DIR
+from bibconfig import USER_CACHE, TEMPLATE_PATH, read_config
 
 
 def parse_options():
