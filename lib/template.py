@@ -4,8 +4,7 @@ import shutil, os
 from os.path import join, exists
 from csv import reader
 from publishconfig import DEFAULT_TYPE_ORDER
-
-from sys import stderr
+from bibtex import NameFormatter
 
 
 class Template(object):
@@ -28,7 +27,6 @@ class Template(object):
 
         bd = self._get_per_type_listing( bibtex_entry_list )
         for tp in DEFAULT_TYPE_ORDER:
-            stderr.write(tp+" "+str(publish_types)+" "+str( bd.has_key(tp))+" "+str(len(bd.get(tp)))+"\n")
             if not bd.has_key( tp ): 
                 continue
             if publish_types is not None and tp not in publish_types:
@@ -55,7 +53,6 @@ class Template(object):
         bibtex_entry.entry['_bibpublish'] = "(%s)" % " | ".join(desc)
 
 
-
     def recreateTheme(self, dest_dir):
         """ recreates the theme infrastructure at dest_dir (deleting all files
             present in this directory """
@@ -69,7 +66,6 @@ class Template(object):
         os.mkdir( os.path.join(dest_dir, "pdf") )
         shutil.copytree( self._get_file_name('icons'), os.path.join(dest_dir, 'icons') )
         
-
 
     def _get_translation_table(self, fname):
         """ returns the translation table for formating items """
@@ -87,6 +83,8 @@ class Template(object):
     def _get_entry_dict( self, bibtex_entry, keys ):
         """ formats optional items and sets missing items to '' """
         data = dict( [ (k,self._translate_str(v)) for k,v in bibtex_entry.entry.iteritems() ] )
+        if 'author' in data:
+            data['author'] = NameFormatter( data['author'] ).getAuthors()
         for k in keys:
             if not k in data:
                 data[k] = ''
