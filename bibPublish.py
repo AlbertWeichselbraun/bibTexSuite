@@ -70,10 +70,10 @@ def publish( publish_dir, template_path, pdf_path,  bibtex_entries):
 
     # write per file abstract/bibtex/pdf (if available)
     for b in bibtex_entries:
-        entry_discriptor = {'bibtex': os.path.join("bibtex", b.getIEEEFilename()+".bib") }
+        entry_discriptor = {'bibtex': os.path.join("bibtex", b.key+".bib") }
         open( os.path.join(publish_dir, entry_discriptor['bibtex']), "w").write( b.getBibTexCitation() )
         if b.entry.has_key("abstract"):
-            entry_discriptor['abstract'] = os.path.join("abstract", b.getIEEEFilename()+".html")
+            entry_discriptor['abstract'] = os.path.join("abstract", b.key+".html")
             open( os.path.join(publish_dir, entry_discriptor['abstract']), "w").write( ts.getAbstract(b) )
         
         pdf = pdf_search.search(b)
