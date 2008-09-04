@@ -151,8 +151,8 @@ class BibTexEntry(object):
     def getCitation(self, filter_term = None):
         """ returns the citation of the given article """
         if not filter_term or filter_term in self:
-            return """%s (%s). ''%s'', %s""" % \
-                     (self.getAuthor(), self.getYear(), self.getTitle(), self.getOutlet() )
+            return """[%s] %s (%s). ''%s'', %s""" % \
+                     (self.key, self.getAuthor(), self.getYear(), self.getTitle(), self.getOutlet() )
         else:
             return None
 
