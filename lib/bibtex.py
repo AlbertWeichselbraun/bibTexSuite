@@ -98,7 +98,7 @@ class BibTexEntry(object):
 
     def __contains__(self, search_terms):
         """ returns true if any of the BibTexEntry's fields contains the given string """
-        textRep = " ".join( map(str.lower, self.entry.values()) )
+        textRep = " ".join( map(str.lower, self.entry.values()) ) + self.key
         return reduce(and_, [ needle.lower() in textRep for needle in search_terms])
     
 
