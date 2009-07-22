@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# (C)opyrights 2008 by Albert Weichselbraun <albert@weichselbraun.net>
+# (C)opyrights 2008-2009 by Albert Weichselbraun <albert@weichselbraun.net>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

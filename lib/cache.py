@@ -20,6 +20,7 @@
 __revision__ = "$Revision$"
 
 import os
+from os.path import exists
 from cPickle import dump, load
 from hashlib import md5
 from stat import ST_MTIME
@@ -29,6 +30,9 @@ def cacheRetrieve( cachedir, fname, fn ):
     """ checks whether fname or cache_dir is newer
         - retrieves the data from the cache if fname is not newer than the data in cachedir
         - otherwise calls fn with fname """
+
+    if not exists(cachedir):
+        os.makedirs(cachedir) 
 
     cacheFile = os.path.join( cachedir, md5(fname).hexdigest() )
     try:

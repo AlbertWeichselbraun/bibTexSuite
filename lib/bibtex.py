@@ -2,7 +2,7 @@
 
 """ handles bibtex objects based on the _bibtex library """
 
-# (C)opyrights 2008 by Albert Weichselbraun <albert@weichselbraun.net>
+# (C)opyrights 2008-2009 by Albert Weichselbraun <albert@weichselbraun.net>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 import _bibtex
 from operator import and_
+from os.path import basename
 BIBTEX_TEST_FILE = "self.bib"
 
 cleanup = lambda x: x.replace("{", "").replace("}", "").replace("\"", "")
@@ -77,12 +78,18 @@ class NameFormatter(object):
 class BibTexEntry(object):
     """ handles a single bibtex entry """
 
-    def __init__(self, bibtex_entry):
+    def __init__(self, bibtex_entry, path=""):
+        """ @param[in] bibtex_entry 
+            @param[in] path          (optional path to the bib file containing the entry)
+        """
         self.key, self.type, tmp, tmp, entries  = bibtex_entry
         self.orig_entry = dict( [ (key, cleanup(_bibtex.get_native(value))) for key, value in entries.iteritems() ] )
         self.entry = dict( [ (key, cleanup(value)) for key, value in self.orig_entry.iteritems() ] )
+
+        self.path  = path
         if 'author' in self.entry:
             self.entry['author'] = NameFormatter(self.entry['author']).getBibTexAuthors()
+
 
 
     def __cmp__(self, o):
@@ -151,8 +158,8 @@ class BibTexEntry(object):
     def getCitation(self, filter_term = None):
         """ returns the citation of the given article """
         if not filter_term or filter_term in self:
-            return """[%s] %s (%s). ''%s'', %s""" % \
-                     (self.key, self.getAuthor(), self.getYear(), self.getTitle(), self.getOutlet() )
+            return """[%s, %s] %s (%s). ''%s'', %s""" % \
+                     (self.key, basename(self.path), self.getAuthor(), self.getYear(), self.getTitle(), self.getOutlet() )
         else:
             return None
 
@@ -180,8 +187,9 @@ class BibTexEntry(object):
 class BibTex(object):
     """ handles bibtex objects based n the _bibtex library """
 
-    def __init__(self, fname):
-        self.fhandle = _bibtex.open_file(fname, 100)
+    def __init__(self, path):
+        self.path    = path
+        self.fhandle = _bibtex.open_file(path, 100)
 
     def __iter__(self):
         """ this class implements the iterator interface """
@@ -190,7 +198,7 @@ class BibTex(object):
     def next(self):
         """ iterator interface: get next bibtex entry """
         try:
-            return BibTexEntry( _bibtex.next(self.fhandle) )
+            return BibTexEntry( _bibtex.next(self.fhandle), self.path )
         except TypeError:
             raise StopIteration
 
