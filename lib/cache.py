@@ -21,7 +21,7 @@ __revision__ = "$Revision$"
 
 import os
 from cPickle import dump, load
-from md5 import md5
+from hashlib import md5
 from stat import ST_MTIME
 from warnings import warn
 
