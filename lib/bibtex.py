@@ -69,6 +69,7 @@ class NameFormatter(object):
 
         return "%s and %s" % (", ".join(authors[:-1]), authors[-1])
 
+
     def getBibTexAuthors(self):
         """ returns the author list in the BibTeX format 'a1 and a2 and a3...' """
         return " and ".join(self.names)
@@ -85,6 +86,7 @@ class BibTexEntry(object):
         self.key, self.type, tmp, tmp, entries  = bibtex_entry
         self.orig_entry = dict( [ (key, cleanup(_bibtex.get_native(value))) for key, value in entries.iteritems() ] )
         self.entry = dict( [ (key, cleanup(value)) for key, value in self.orig_entry.iteritems() ] )
+
 
         self.path  = path
         if 'author' in self.entry:
@@ -108,6 +110,12 @@ class BibTexEntry(object):
         textRep = " ".join( map(str.lower, self.entry.values()) ) + self.key
         return reduce(and_, [ needle.lower() in textRep for needle in search_terms])
     
+    def getNumAuthors(self):
+        """ returns the number of authors """
+        if not 'author' in self.entry:
+            return 0
+        else:
+            return len(self.entry['author'].split(" and "))
 
     def getAuthor(self):
         """ returns the author for the given entry """
