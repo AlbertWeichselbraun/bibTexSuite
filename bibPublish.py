@@ -60,26 +60,26 @@ def get_matching_bibtex_entries( search_terms, bibtex_files ):
 
     return result
 
-def publish( publish_dir, template_path, pdf_path,  bibtex_entries):
+
+def publish( publish_dir, template_path, bibtex_entries):
     """ publishes the given bibtex_entries in publish_dir using the template specified in
         template_path
     """
-    pdf_search = PdfSearch(pdf_path)
     ts = Template( template_path )
     ts.recreateTheme( publish_dir)
 
-    # write per file abstract/bibtex/pdf (if available)
+    # write per file abstract/bibtex (if available)
     for b in bibtex_entries:
+        b.entry['key'] = b.key
         entry_discriptor = {'bibtex': os.path.join("bibtex", b.key+".bib") }
         open( os.path.join(publish_dir, entry_discriptor['bibtex']), "w").write( b.getBibTexCitation() )
-        if b.entry.has_key("abstract"):
+        if 'abstract' in b.entry:
             entry_discriptor['abstract'] = os.path.join("abstract", b.key+".html")
             open( os.path.join(publish_dir, entry_discriptor['abstract']), "w").write( ts.getAbstract(b) )
-        
-        pdf = pdf_search.search(b)
-        if pdf!='':
-            entry_discriptor['pdf'] = os.path.join("pdf", os.path.basename(pdf) ) 
-            copyfile(pdf, os.path.join(publish_dir, entry_discriptor['pdf']) )
+
+        for k in ('eprint', 'url'):
+            if k in b.entry:
+                entry_discriptor[k] = b.entry[k]
 
         ts.setDescriptor( b, entry_discriptor )
 
@@ -95,14 +95,13 @@ def publish( publish_dir, template_path, pdf_path,  bibtex_entries):
 # ===============================================================================
 
 read_config( LIB_DIR )
-from publishconfig import BIB_PUBLISH_OUTPUT_DIR, DEFAULT_TEMPLATE, BIB_PUBLISH_FILES, PDF_SEARCH_PATH
+from publishconfig import BIB_PUBLISH_OUTPUT_DIR, DEFAULT_TEMPLATE, BIB_PUBLISH_FILES
 from template import Template
 from bibtex import BibTex
 from cache import cacheRetrieve
-from pdfsearch import PdfSearch
 
 options = parse_options()
 entries = get_matching_bibtex_entries( None, options.input )
 
-publish( BIB_PUBLISH_OUTPUT_DIR, os.path.join(options.template_path, options.template), PDF_SEARCH_PATH, entries )
+publish( BIB_PUBLISH_OUTPUT_DIR, os.path.join(options.template_path, options.template), entries )
 

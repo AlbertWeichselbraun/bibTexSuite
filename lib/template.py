@@ -49,9 +49,8 @@ class Template(object):
     
     def setDescriptor(self, bibtex_entry, d):
         """ sets the descriptor for the given bibtex entry """
-        desc = [ self._file_translation_table[t] % {'fname':d[t]} for t in ('abstract', 'pdf', 'bibtex') if t in d ]
-        bibtex_entry.entry['_bibpublish'] = "(%s)" % " | ".join(desc)
-
+        desc = [ self._file_translation_table[t] % {'fname':d[t]} for t in ('abstract', 'url', 'eprint', 'bibtex') if t in d ]
+        bibtex_entry.entry['_bibpublish'] = " %s " % " ".join(desc)
 
     def recreateTheme(self, dest_dir):
         """ recreates the theme infrastructure at dest_dir (deleting all files
@@ -65,7 +64,8 @@ class Template(object):
         os.mkdir( os.path.join(dest_dir, "bibtex") )
         os.mkdir( os.path.join(dest_dir, "pdf") )
         shutil.copytree( self._get_file_name('icons'), os.path.join(dest_dir, 'icons') )
-        
+        shutil.copytree( self._get_file_name('css'), os.path.join(dest_dir, 'css') )
+       
 
     def _get_translation_table(self, fname):
         """ returns the translation table for formating items """
