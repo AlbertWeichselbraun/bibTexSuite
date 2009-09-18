@@ -1,0 +1,4 @@
+abstract,<a class="abstract" href='%(fname)s'>[Abstract]</a>
+url,<a class="related" href='%(fname)s'>[URL]</a>
+eprint,<a class="download" href='%(fname)s'>[PDF]</a>
+bibtex,<a class="bib" href='%(fname)s'>[BIB]</a>

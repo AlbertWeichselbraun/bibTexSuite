@@ -1,0 +1,74 @@
+body {
+    font-family: Helvetica, Arial;
+}
+
+h1 {
+     color: darkred;
+     font-family: Helvetica, Arial;
+     font-size: 20pt;
+   }   
+
+h2 {
+     font-family: Helvetica, Arial;
+     font-size: 14pt;
+   }
+
+a.nav {
+    color: darkblue;
+}
+
+
+a.abstract { 
+    color: #506a76; 
+    text-decoration:none; 
+}
+a.related { 
+    color: #757e81; 
+    text-decoration:none; 
+}
+a.download { 
+    color: #274a5c; 
+    text-decoration:none; 
+}
+a.bib { 
+    color: #7c7f80; 
+    text-decoration:none; 
+}
+
+ol {
+    list-style-type: decimal;
+}
+
+
+li {
+    margin-top: 0.25cm;
+}
+
+ul.nav {
+    list-style-image:url(../icons/arrow_down.png);
+}
+
+li.nav {
+    margin-top: 0.1cm;
+}
+
+span.title {
+    color: #856c5e;
+    font-style:italic;
+}
+
+strong.news {
+     vertical-align:top;
+     color: black;
+     font-family: Helvetica, Arial;
+     text-indent:2mm;
+     font-size: 16pt;
+     font-weight: normal;
+   }
+
+h4.news {
+     color: green;
+     font-family: Helvetica, Arial;
+     font-size: 14pt;
+   }
+
