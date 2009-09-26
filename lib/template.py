@@ -49,8 +49,18 @@ class Template(object):
     
     def setDescriptor(self, bibtex_entry, d):
         """ sets the descriptor for the given bibtex entry """
-        desc = [ self._file_translation_table[t] % {'fname':d[t]} for t in ('abstract', 'url', 'eprint', 'bibtex') if t in d ]
+        d.update(bibtex_entry.entry)
+        desc = [ self._file_translation_table[t] % d for t in ('abstract', 'url', 'eprint', 'bibtex') if t in d ]
+
+        # set _bibpublish descriptor
         bibtex_entry.entry['_bibpublish'] = " %s " % " ".join(desc)
+
+        # adjust title (adds a linked title, if necessary)
+        if 'eprint' in d:
+            u = self._file_translation_table['title'] % d
+            bibtex_entry.entry['title'] = u
+         
+
 
     def recreateTheme(self, dest_dir):
         """ recreates the theme infrastructure at dest_dir (deleting all files
