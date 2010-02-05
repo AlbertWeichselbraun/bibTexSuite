@@ -50,7 +50,7 @@ class Template(object):
     def setDescriptor(self, bibtex_entry, d):
         """ sets the descriptor for the given bibtex entry """
         d.update(bibtex_entry.entry)
-        desc = [ self._file_translation_table[t] % d for t in ('abstract', 'url', 'eprint', 'bibtex') if t in d ]
+        desc = [ self._file_translation_table[t] % d for t in ('abstract_url', 'url', 'eprint', 'bibtex') if t in d ]
 
         # set _bibpublish descriptor
         bibtex_entry.entry['_bibpublish'] = " %s " % " ".join(desc)

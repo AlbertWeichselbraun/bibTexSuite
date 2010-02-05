@@ -183,7 +183,7 @@ class BibTexEntry(object):
     def getBibTexCitation(self, filter_term = None):
         """ returns the bibTexCitation for the given item """
         entries = [ "   %s={%s}" % (key, value) for key, value in self.orig_entry.iteritems() ] 
-        return "@%s{%s\n%s\n}" % ( self.type.upper(), self.key, ",\n".join(entries) )
+        return "@%s{%s,\n%s\n}" % ( self.type.upper(), self.key, ",\n".join(entries) )
 
 
     def __str__(self):
