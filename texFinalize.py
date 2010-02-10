@@ -37,6 +37,7 @@ def read_file( fname ):
         if line.startswith("%"):
             continue
 
+        line = line.replace(r"\def\mode{0} %", r"\def\mode{1}")
         # expand input statements
         m = RE_INPUT.search(line)
         if m:
