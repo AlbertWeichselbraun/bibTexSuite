@@ -31,6 +31,7 @@ get_bbl_file = lambda fname: splitext(fname)[0]+".bbl"
 
 
 def read_aux_file( fname ):
+    """ reads the aux file required to replace labels with figure numbers """
     fname = splitext( fname )[0]+".aux"
     if not exists( fname ):
         return
@@ -41,7 +42,6 @@ def read_aux_file( fname ):
             key = r"\ref{fig:%s}" % m.group(1)
             FIG_NUM_TABLE[ key ] = m.group(2)
 
-    print FIG_NUM_TABLE
 
 def replace_items( line ):
     """ replaces mode and figure references """
