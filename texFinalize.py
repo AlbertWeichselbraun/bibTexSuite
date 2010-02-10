@@ -22,9 +22,33 @@ from re import compile as re_compile
 from sys import argv
 from os.path import splitext, exists
 
-RE_INPUT = re_compile( r"\input{([^}]+)}" )
+RE_INPUT  = re_compile( r"\input{([^}]+)}" )
+RE_FIGURE = re_compile( r"newlabel{fig:(\S+)}{{(\d+)}" )
+
+FIG_NUM_TABLE = {}
 
 get_bbl_file = lambda fname: splitext(fname)[0]+".bbl"
+
+
+def read_aux_file( fname ):
+    fname = splitext( fname )[0]+".aux"
+    if not exists( fname ):
+        return
+
+    for line in open( fname ):
+        m = RE_FIGURE.search(line)
+        if m:
+            key = r"\ref{fig:%s}" % m.group(1)
+            FIG_NUM_TABLE[ key ] = m.group(2)
+
+    print FIG_NUM_TABLE
+
+def replace_items( line ):
+    """ replaces mode and figure references """
+    line = line.replace(r"\def\mode{0} %", r"\def\mode{1} %")
+    for key, reference in FIG_NUM_TABLE.items():
+        line = line.replace(key, reference)
+    return line
 
 
 def read_file( fname ):
@@ -32,12 +56,14 @@ def read_file( fname ):
     if not splitext( fname )[1] and not exists( fname ):
         fname += ".tex"
 
+    read_aux_file( fname )
+
     for line in open( fname ):
         # skip results
         if line.startswith("%"):
             continue
 
-        line = line.replace(r"\def\mode{0} %", r"\def\mode{1} %")
+        line = replace_items( line )
         # expand input statements
         m = RE_INPUT.search(line)
         if m:
