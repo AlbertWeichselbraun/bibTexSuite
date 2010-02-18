@@ -24,10 +24,18 @@ from os.path import splitext, exists
 
 RE_INPUT  = re_compile( r"\input{([^}]+)}" )
 RE_FIGURE = re_compile( r"newlabel{fig:(\S+)}{{(\d+)}" )
+RE_HREF   = re_compile( ".href{[^}]+?}{([^}]+?)}" )
 
 FIG_NUM_TABLE = {}
 
-get_bbl_file = lambda fname: splitext(fname)[0]+".bbl"
+latexComand = lambda x: "\n"+x if x.startswith("\\") else x
+
+def get_bbl_file( fname ):
+    """ reads the bbl file and removes links from the file """
+    fname = splitext( fname )[0]+".bbl"
+    result = "".join( [ latexComand( line.strip()+" " if not line.strip().endswith("%") else line.strip()[:-1] ) for line in open(fname) ] )
+    getLinkText = lambda x: x.group(1)
+    return "\n".join( [ RE_HREF.sub(getLinkText, line) for line in result.split("\n") ] )
 
 
 def read_aux_file( fname ):
@@ -73,7 +81,7 @@ def read_file( fname ):
         if line.startswith(r"\bibliographystyle"):
             continue
         if line.startswith(r"\bibliography"):
-            line = read_file( get_bbl_file(argv[1]) )
+            line = get_bbl_file(argv[1])
 
         result.append( line )
 
