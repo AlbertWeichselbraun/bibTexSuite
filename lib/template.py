@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-import shutil, os
+import shutil, os, sys
 from os.path import join, exists
 from csv import reader
-from publishconfig import DEFAULT_TYPE_ORDER
 from bibtex import NameFormatter
-
 
 class Template(object):
     """ creates an HTML file using a given template """
@@ -13,9 +11,21 @@ class Template(object):
     def __init__(self, template_path):
         self._get_file_name = lambda x: join(template_path, x)
         self._get_content   = lambda x: open(self._get_file_name(x)).read()
-        self._attr_translation_table = self._get_translation_table( "attr.csv" )
-        self._str_translation_table  = self._get_translation_table( "str.csv" )
-        self._file_translation_table = self._get_translation_table( "files.csv")
+        # import preferences
+        sys.path.append(template_path)
+        try:
+            from templateconfig import DEFAULT_TYPE_ORDER, ATTR_TRANSLATION_TABLE, STR_TRANSLATION_TABLE, FILE_TRANSLATION_TABLE
+            self._default_order = DEFAULT_TYPE_ORDER
+            self._attr_translation_tbl  = ATTR_TRANSLATION_TABLE
+            self._str_translation_tbl   = STR_TRANSLATION_TABLE
+            self._file_translation_tbl  = FILE_TRANSLATION_TABLE
+        except ImportError: # use old schema
+            from publishconfig import DEFAULT_TYPE_ORDER
+            self._default_order        = DEFAULT_TYPE_ORDER
+            self._attr_translation_tbl = self._get_translation_table( "attr.csv" )
+            self._str_translation_tbl  = self._get_translation_table( "str.csv" )
+            self._file_translation_tbl = self._get_translation_table( "files.csv")
+        
 
 
     def getHtmlFile(self, bibtex_entry_list, publish_types=None):
@@ -26,7 +36,7 @@ class Template(object):
         html.append( self._get_head() )
 
         bd = self._get_per_type_listing( bibtex_entry_list )
-        for tp in DEFAULT_TYPE_ORDER:
+        for tp in self._default_order:
             if not bd.has_key( tp ): 
                 continue
             if publish_types is not None and tp not in publish_types:
@@ -50,14 +60,14 @@ class Template(object):
     def setDescriptor(self, bibtex_entry, d):
         """ sets the descriptor for the given bibtex entry """
         d.update(bibtex_entry.entry)
-        desc = [ self._file_translation_table[t] % d for t in ('abstract_url', 'url', 'eprint', 'bibtex') if t in d ]
+        desc = [ self._file_translation_tbl[t] % d for t in ('abstract_url', 'url', 'eprint', 'bibtex') if t in d ]
 
         # set _bibpublish descriptor
         bibtex_entry.entry['_bibpublish'] = " %s " % " ".join(desc)
 
         # adjust title (adds a linked title, if necessary)
         if 'eprint' in d:
-            u = self._file_translation_table['title'] % d
+            u = self._file_translation_tbl['title'] % d
             bibtex_entry.entry['title'] = u
          
 
@@ -85,7 +95,7 @@ class Template(object):
 
     def _translate_str(self, s):
         """ translates the given string using the _str_translation_table """
-        for src, dest in self._str_translation_table.iteritems():
+        for src, dest in self._str_translation_tbl.iteritems():
             s=s.replace(src,dest)
         return s
 
@@ -98,8 +108,8 @@ class Template(object):
         for k in keys:
             if not k in data:
                 data[k] = ''
-            elif k in self._attr_translation_table:
-                data[k] = self._attr_translation_table.get(k) % data[k]
+            elif k in self._attr_translation_tbl: 
+                data[k] = self._attr_translation_tbl.get(k) % data[k]
         return data
                 
 
@@ -126,7 +136,7 @@ class Template(object):
 
     def _get_bibtex_entry_content(self, bibtex_entry):
         """ returns the html snippet for the given entry """
-        d=self._get_entry_dict( bibtex_entry, ('editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish' ) )
+        d=self._get_entry_dict( bibtex_entry, ('editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish', 'year', 'note' ) )
 
         template_string = self._get_content("%s-entry.html" % bibtex_entry.type )
         return template_string % d

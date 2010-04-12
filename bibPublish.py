@@ -36,7 +36,7 @@ from bibconfig import USER_CACHE, TEMPLATE_PATH, read_config
 def parse_options():
     """ parses the options specified by the user """
     parser = OptionParser()
-    parser.add_option("-o", "--output-dir", dest="output_dir", 
+    parser.add_option("-o", "--output-dir", dest="output_dir", default=BIB_PUBLISH_OUTPUT_DIR,
                       help="output directory.")
     parser.add_option("-t", "--template", dest="template", default=DEFAULT_TEMPLATE,
                       help="template to use (%s)." % DEFAULT_TEMPLATE)
@@ -103,5 +103,5 @@ from cache import cacheRetrieve
 options = parse_options()
 entries = get_matching_bibtex_entries( None, options.input )
 
-publish( BIB_PUBLISH_OUTPUT_DIR, os.path.join(options.template_path, options.template), entries )
+publish( options.output_dir, os.path.join(options.template_path, options.template), entries )
 
