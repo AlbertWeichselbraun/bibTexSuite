@@ -4,6 +4,7 @@ import shutil, os, sys
 from os.path import join, exists
 from csv import reader
 from bibtex import NameFormatter
+from collections import defaultdict
 
 class Template(object):
     """ creates an HTML file using a given template """
@@ -14,17 +15,19 @@ class Template(object):
         # import preferences
         sys.path.append(template_path)
         try:
-            from templateconfig import DEFAULT_TYPE_ORDER, ATTR_TRANSLATION_TABLE, STR_TRANSLATION_TABLE, FILE_TRANSLATION_TABLE
+            from templateconfig import DEFAULT_TYPE_ORDER, ATTR_TRANSLATION_TABLE, STR_TRANSLATION_TABLE, FILE_TRANSLATION_TABLE, PUBLICATION_BLACKLIST
             self._default_order = DEFAULT_TYPE_ORDER
             self._attr_translation_tbl  = ATTR_TRANSLATION_TABLE
             self._str_translation_tbl   = STR_TRANSLATION_TABLE
             self._file_translation_tbl  = FILE_TRANSLATION_TABLE
+            self._publication_blacklist = PUBLICATION_BLACKLIST   # a list of publications to ignore in the publishing process
         except ImportError: # use old schema
             from publishconfig import DEFAULT_TYPE_ORDER
-            self._default_order        = DEFAULT_TYPE_ORDER
-            self._attr_translation_tbl = self._get_translation_table( "attr.csv" )
-            self._str_translation_tbl  = self._get_translation_table( "str.csv" )
-            self._file_translation_tbl = self._get_translation_table( "files.csv")
+            self._default_order         = DEFAULT_TYPE_ORDER
+            self._attr_translation_tbl  = self._get_translation_table( "attr.csv" )
+            self._str_translation_tbl   = self._get_translation_table( "str.csv" )
+            self._file_translation_tbl  = self._get_translation_table( "files.csv")
+            self._publication_blacklist = () 
         
 
 
@@ -113,13 +116,13 @@ class Template(object):
         return data
                 
 
-    @staticmethod
-    def _get_per_type_listing( bibtex_entry_list ):
+    def _get_per_type_listing( self, bibtex_entry_list ):
         """ returns a dictinary with the publication_type + publications """
-        bd = {}
+        bd = defaultdict( list )
         for b in bibtex_entry_list:
-            if not bd.get(b.type, None):
-                bd[b.type] = []
+            # ignore blacklisted items
+            if b.key in self._publication_blacklist:
+                continue
             bd[b.type].append( b )
         return bd
 
@@ -136,7 +139,7 @@ class Template(object):
 
     def _get_bibtex_entry_content(self, bibtex_entry):
         """ returns the html snippet for the given entry """
-        d=self._get_entry_dict( bibtex_entry, ('editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish', 'year', 'note' ) )
+        d=self._get_entry_dict( bibtex_entry, ('editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish', 'year', 'note', 'series' ) )
 
         template_string = self._get_content("%s-entry.html" % bibtex_entry.type )
         return template_string % d
