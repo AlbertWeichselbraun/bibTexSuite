@@ -29,7 +29,7 @@ else:
     LIB_DIR       = os.path.join(os.path.dirname(__file__), "lib")
 
 path.append(LIB_DIR)
-print LIB_DIR
+#print LIB_DIR
 from bibconfig import USER_CACHE, TEMPLATE_PATH, read_config
 
 
@@ -44,6 +44,8 @@ def parse_options():
                       help="specify another template path (%s)." % (TEMPLATE_PATH))
     parser.add_option("-i", "--input", dest="input", default=BIB_PUBLISH_FILES,
                       help="add additional bibTeX files to publish (%s)" % ", ".join(BIB_PUBLISH_FILES) )
+    parser.add_option("-l", "--list", dest="list", action="store_true", default=False,
+                      help="Provides a list of all BibTeX-keys.")
 
 
     (options, args) = parser.parse_args()
@@ -103,5 +105,9 @@ from cache import cacheRetrieve
 options = parse_options()
 entries = get_matching_bibtex_entries( None, options.input )
 
-publish( options.output_dir, os.path.join(options.template_path, options.template), entries )
+if options.list == True:
+    for e in sorted(entries):
+        print e.key
+else:
+    publish( options.output_dir, os.path.join(options.template_path, options.template), entries )
 
