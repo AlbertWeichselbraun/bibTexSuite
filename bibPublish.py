@@ -46,6 +46,9 @@ def parse_options():
                       help="add additional bibTeX files to publish (%s)" % ", ".join(BIB_PUBLISH_FILES) )
     parser.add_option("-l", "--list", dest="list", action="store_true", default=False,
                       help="Provides a list of all BibTeX-keys.")
+    parser.add_option("-b", "--blacklist", dest="blacklist", action="append", default=[],
+                      help="List of blacklisted publications (will not be published).")
+
 
 
     (options, args) = parser.parse_args()
@@ -103,7 +106,7 @@ from bibtex import BibTex
 from cache import cacheRetrieve
 
 options = parse_options()
-entries = get_matching_bibtex_entries( None, options.input )
+entries = [ e for e in get_matching_bibtex_entries( None, options.input ) if e.key not in options.blacklist ]
 
 if options.list == True:
     for e in sorted(entries):
