@@ -53,6 +53,10 @@ def read_aux_file( fname ):
 
 def replace_items( line ):
     """ replaces mode and figure references """
+    return line
+
+    """ no longer used """
+
     line = line.replace(r"\def\mode{0} %", r"\def\mode{1} %")
     for key, reference in FIG_NUM_TABLE.items():
         line = line.replace(key, reference)

@@ -6,6 +6,11 @@ from csv import reader
 from bibtex import NameFormatter
 from collections import defaultdict
 
+def cleanup( txt ):
+    """ basic cleanup's to prevent formatting errors """
+    txt = txt.replace(", ,", ", ")
+    return txt
+
 class Template(object):
     """ creates an HTML file using a given template """
 
@@ -46,7 +51,7 @@ class Template(object):
                 continue
 
             html.append(self._get_bibtex_type_head( tp ) )
-            html += [ self._get_bibtex_entry_content(b) for b in reversed(sorted(bd.get(tp))) ]
+            html += [ cleanup(self._get_bibtex_entry_content(b)) for b in reversed(sorted(bd.get(tp))) ]
             html.append(self._get_bibtex_type_foot( tp ) )
 
         html.append( self._get_foot() )
