@@ -9,6 +9,7 @@ from collections import defaultdict
 def cleanup( txt ):
     """ basic cleanup's to prevent formatting errors """
     txt = txt.replace(", ,", ", ")
+    txt = txt.replace(", :", ", ")
     return txt
 
 class Template(object):
