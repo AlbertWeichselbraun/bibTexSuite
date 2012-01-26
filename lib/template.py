@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
-import shutil, os, sys
+import shutil, os, sys, re
 from os.path import join, exists
 from csv import reader
 from bibtex import NameFormatter
 from collections import defaultdict
+
+EMPTY_ELEMENT_REGEXP=re.compile("""<span class="\w+">[ ,.]+</span>""", re.I)
 
 def cleanup( txt ):
     """ basic cleanup's to prevent formatting errors """
@@ -148,7 +150,7 @@ class Template(object):
         d=self._get_entry_dict( bibtex_entry, ('editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish', 'year', 'note', 'series' ) )
 
         template_string = self._get_content("%s-entry.html" % bibtex_entry.type )
-        return template_string % d
+        return self.cleanupCitation( template_string % d )
 
 
     def _get_bibtex_type_head(self, tp ):
@@ -159,6 +161,16 @@ class Template(object):
     def _get_bibtex_type_foot(self, tp ):
         """ returns the foot for the given bibtex type """
         return self._get_content("%s-foot.html" % tp )
+
+
+    @staticmethod
+    def cleanupCitation(citationText):
+        """ remove empty <span> elements
+            @param[in] citationText  The origianl citation text with html
+            @returns  A cleanuped version of the text """
+        return EMPTY_ELEMENT_REGEXP.sub("", citationText)
+
+
 
 
 if __name__ == '__main__':
