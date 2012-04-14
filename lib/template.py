@@ -81,8 +81,6 @@ class Template(object):
     def getAbstract(self, bibtex_entry):
         """ returns the abstract for the given bibtex entry """
         d=self._get_entry_dict( bibtex_entry, ('key', 'eprint', 'keywords', 'editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish' ) )
-        d['citation'] = bibtex_entry.getCitation().replace("\n", "<br/>")
-        d['coins']    = bibtex_entry.getCoinsCitation()
         return self._evalTemplate( self._get_content("abstract.html"), d )
 
     
@@ -97,8 +95,9 @@ class Template(object):
         # adjust title (adds a linked title, if necessary)
         if 'eprint' in d:
             u = self._file_translation_tbl['title'] % d
-            bibtex_entry.entry['title'] = u
-         
+            bibtex_entry.entry['_title'] = u
+        else:
+            bibtex_entry.entry['_title'] = bibtex_entry.entry['title']
 
 
     def recreateTheme(self, dest_dir):
@@ -131,7 +130,9 @@ class Template(object):
 
     def _get_entry_dict( self, bibtex_entry, keys ):
         """ formats optional items and sets missing items to '' """
-        data = dict( [ (k,self._translate_str(v)) for k,v in bibtex_entry.entry.iteritems() ] )
+        data = { k: self._translate_str(v) for k,v in bibtex_entry.entry.iteritems() }
+        data['citation'] = bibtex_entry.getCitation().replace("\n", "<br/>")
+        data['coins']    = bibtex_entry.getCoinsCitation()
         if 'author' in data:
             data['author'] = NameFormatter( data['author'] ).getAuthors()
         for k in keys:
@@ -165,7 +166,7 @@ class Template(object):
 
     def _get_bibtex_entry_content(self, bibtex_entry):
         """ returns the html snippet for the given entry """
-        d=self._get_entry_dict( bibtex_entry, ('editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish', 'year', 'note', 'series' ) )
+        d=self._get_entry_dict( bibtex_entry, ('_title', 'editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish', 'year', 'note', 'series' ) )
 
         template_string = self._get_content("%s-entry.html" % bibtex_entry.type )
         return self.cleanupCitation( template_string % d )

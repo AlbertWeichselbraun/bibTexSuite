@@ -259,11 +259,15 @@ class Coins(object):
 
     def _getGenre(self, entry_type):
         if entry_type.lower() in ('inproceedings', 'conference'):
-            return [ ('rft.genre', 'proceeding') ]
+            return [ ('rft.genre', 'proceeding'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
         elif entry_type.lower() in ('article', ):
-            return [ ('rft.genre', 'article') ]
+            return [ ('rft.genre', 'article'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
+        elif entry_type.lower() in ('book', 'collection'):
+            return [ ('rft.genre', 'book'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
+        elif entry_type.lower() in ('incollection', ):
+            return [ ('rft.genre', 'incollection'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
         else:
-            return [ ('rft.genre', 'unknown') ]
+            return [ ('rft.genre', 'unknown'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
 
     def _getAuthors(self, field, d, key):
         first_author = d['author'].split("and")[0].strip()
@@ -285,7 +289,7 @@ class Coins(object):
     @staticmethod
     def _getReferrer():
         """ returns a reference to the creator of the coin """
-        return [ ('rfr_id', 'info:sid/semanticlab.net:bibTexSuite'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
+        return [ ('rfr_id', 'info:sid/semanticlab.net:bibTexSuite'), ]
 
 
 class TestCoins(object):
