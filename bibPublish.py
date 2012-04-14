@@ -78,16 +78,17 @@ def publish( publish_dir, template_path, bibtex_entries):
     for b in bibtex_entries:
         b.entry['key'] = b.key
         entry_discriptor = {'bibtex': os.path.join("bibtex", b.key+".bib") }
-        open( os.path.join(publish_dir, entry_discriptor['bibtex']), "w").write( b.getBibTexCitation() )
-        if 'abstract' in b.entry:
-            entry_discriptor['abstract_url'] = os.path.join("abstract", b.key+".html")
-            open( os.path.join(publish_dir, entry_discriptor['abstract_url']), "w").write( ts.getAbstract(b) )
 
         for k in ('eprint', 'url'):
             if k in b.entry:
                 entry_discriptor[k] = b.entry[k]
 
+        if 'abstract' in b.entry:
+            entry_discriptor['abstract_url'] = os.path.join("abstract", b.key+".html")
+            open( os.path.join(publish_dir, entry_discriptor['abstract_url']), "w").write( ts.getAbstract(b) )
+
         ts.setDescriptor( b, entry_discriptor )
+        open( os.path.join(publish_dir, entry_discriptor['bibtex']), "w").write( b.getBibTexCitation() )
 
     # write index.html
     open( os.path.join(publish_dir, "index.html"), "w").write( ts.getHtmlFile(entries) )

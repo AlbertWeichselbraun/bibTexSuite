@@ -7,6 +7,7 @@ from bibtex import NameFormatter
 from collections import defaultdict
 
 EMPTY_ELEMENT_REGEXP=re.compile("""<span class="\w+">[ ,.]+</span>""", re.I)
+RE_PYTHON_CODE=re.compile("===(.*?)===")
 
 def cleanup( txt ):
     """ basic cleanup's to prevent formatting errors """
@@ -60,12 +61,28 @@ class Template(object):
         html.append( self._get_foot() )
         return "\n".join(html)
 
+    def _evalTemplate(self, template, d):
+        """ evaluates python expressions in a template 
+            @param template: the text of the template
+            @param d: a dictionary with values to consider
+            @returns the expanded template
+        """
+        # string expansion
+        result = template % d  
+
+        def replace(x, d=d):
+            return eval( x.group(1) )
+
+        # evaluate inline python code
+        result = RE_PYTHON_CODE.sub( replace, result ) 
+        return result
+
 
     def getAbstract(self, bibtex_entry):
         """ returns the abstract for the given bibtex entry """
-        d=self._get_entry_dict( bibtex_entry, ('editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish' ) )
+        d=self._get_entry_dict( bibtex_entry, ('key', 'eprint', 'keywords', 'editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish' ) )
         d['citation'] = bibtex_entry.getCitation().replace("\n", "<br/>")
-        return self._get_content("abstract.html") % d
+        return self._evalTemplate( self._get_content("abstract.html"), d )
 
     
     def setDescriptor(self, bibtex_entry, d):
