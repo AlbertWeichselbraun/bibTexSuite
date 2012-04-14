@@ -21,6 +21,8 @@
 import _bibtex
 from operator import and_
 from os.path import basename
+from urllib import urlencode
+
 BIBTEX_TEST_FILE = "self.bib"
 
 cleanup = lambda x: x.replace("{", "").replace("}", "").replace("\"", "")
@@ -186,6 +188,14 @@ class BibTexEntry(object):
         return "@%s{%s,\n%s\n}" % ( self.type.upper(), self.key, ",\n".join(entries) )
 
 
+    def getCoinsCitation(self, filter_term = None):
+        """ returns the coins citation for the given item """
+        if not filter_term or filter_term in self:
+            return Coins().getCoin( self )
+        else:
+            return None
+
+
     def __str__(self):
         """ returns a string representation of the item """
         return "<BibTexEntry %s>" % self.key
@@ -212,77 +222,137 @@ class BibTex(object):
 
 
 
-if __name__ == '__main__':
-    from unittest import TestCase, main
+      
 
-    class NameFormatterTest(TestCase):
-        """ tests the nameformatter class """
+class Coins(object):
 
-        NAMES = ( "Arno Scharl and Weichselbraun, Albert and Astrid Dickinger",
-                  "Wagner, Petra",
-                  "Christian Julius Toth and Caesar, Julius H.",
-                )
+    def __init__(self):
+        self.COIN_TRANSLATION_DICT = {
+            'title':   ('rtf.atitle', self._get, 'title'),
+            'journal': ('rtf.jtitle', self._get, 'journal'),
+            'year':    ('rft.date', self._get, 'year'),
+            'volume':  ('rtf.volume', self._get, 'volume'),
+            'issue':   ('rtf.issue', self._get, 'issue'),
+            'pages':   ('rtf.pages', self._get, 'pages'),
+            'eprint':  ('rtf.id', self._get, 'eprint'),
+            'author':  ('rtf.au', self._getAuthors, '')
+        }
 
-        LAST_NAMES      = ('Scharl', 'Wagner', 'Toth')
-        LASTNAME_FORMAT = ( "Scharl, Arno, Weichselbraun, Albert and Dickinger, Astrid",
-                            "Wagner, Petra",
-                            "Toth, Christian Julius and Caesar, Julius H.",
-                          )
-        FIRSTNAME_FORMAT= ( "Arno Scharl, Albert Weichselbraun and Astrid Dickinger",
-                            "Petra Wagner",
-                            "Christian Julius Toth and Julius H. Caesar",
-                          )
+    def getCoin(self, b):
+        """ @returns the coin for the given bibtex object """
+        entry_dict = b.entry
+        url = self._getReferrer() + self._getGenre( b.type )
+        for item, (field, translation_function, key) in self.COIN_TRANSLATION_DICT.items():
+            if item in entry_dict:
+                url.extend( translation_function(field, entry_dict, key ) )
+
+        return self._getSkeleton() % (self._assembleUrl( url ).replace("&", "&amp;"))
+
+    def _assembleUrl(self, items):
+        """ creates the coins url from the given items """
+        return urlencode( items )
 
 
-        def setUp(self):
-            self.name_obj = [ NameFormatter(name) for name in self.NAMES ]
+    def _get(self, field, d, key):
+        return [ (field, d.get(key)) ]
 
 
-        def testGetFirstAuthorLastnameTest(self):
-            """ checks whether the class correctly determines the surname of the first author """
-            for name_obj, solution in zip(self.name_obj, self.LAST_NAMES):
-                self.assertEqual( name_obj.getFirstAuthorLastname(), solution )
+    def _getGenre(self, entry_type):
+        if entry_type.lower() in ('inproceedings', 'conference'):
+            return [ ('rtf.genre', 'proceeding') ]
+        elif entry_type.lower() in ('article', ):
+            return [ ('rtf.genre', 'article') ]
+        else:
+            return [ ('rtf.genre', 'unknown') ]
 
-        def testGetAuthors(self):
-            """ tests whether the function corretly formats the authors """
-            for name_obj, solution in zip(self.name_obj, self.LASTNAME_FORMAT):
-                self.assertEqual( name_obj.getAuthors(), solution )
+    def _getAuthors(self, field, d, key):
+        result = []
+        for author in str(d['author']).split("and"):
+            result.append( ('rtf.au', author.strip() ) )
+        return result
 
-            for name_obj, solution in zip(self.name_obj, self.FIRSTNAME_FORMAT): 
-                self.assertEqual( name_obj.getAuthors(NameFormatter.getFirstnameFirst), solution )
-           
+
+    def _getSkeleton(self):
+        return """<span class="Z3988" title="ctx_ver=Z39.88-2004&amp;%s" /> """
+
+
+    @staticmethod
+    def _getReferrer():
+        """ returns a reference to the creator of the coin """
+        return [ ('rft_id', 'info:sid/semanticlab.net:bibTexSuite'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
+
+
+class TestCoins(object):
+
+    def setUp(self):
+        from os.path import dirname, join as os_join
+        import _bibtex
+        self.bibtex_entry = BibTexEntry( _bibtex.next( _bibtex.open_file( os_join( dirname(__file__), "../test", BIBTEX_TEST_FILE ), 100 ) ) )
+
+    def testBibtex(self):
+        print Coins().getCoin( self.bibtex_entry )
+
+
+class TextBibTex(object):
+        
+    def testGetEntries(self):
+        """ read an input file """
+        b=BibTex( BIBTEX_TEST_FILE )
+        for bibtex_entry in b:
+            pass
+            #print bibtex_entry.getCitation()
+
+
+class TestBibTexEntry(object):
+    
+    def setUp(self):
+        from os.path import dirname, join as os_join
+        self.bibtex_entry = _bibtex.next( _bibtex.open_file( os_join( dirname(__file__), "../test", BIBTEX_TEST_FILE ), 100 ) )
+    
+    def testContains(self):
+        """ tests whether the contains functions works as advertised """
+        b = BibTexEntry( self.bibtex_entry )
+        assert  ('Albert',) in b 
+        assert ('albert',) in b 
+        assert ('albert', 'Anna') not in b 
+        assert  ('Julius',) not in b 
+
+
+class TestNameFormatter(object):
+    """ tests the nameformatter class """
+
+    NAMES = ( "Arno Scharl and Weichselbraun, Albert and Astrid Dickinger",
+              "Wagner, Petra",
+              "Christian Julius Toth and Caesar, Julius H.",
+            )
+
+    LAST_NAMES      = ('Scharl', 'Wagner', 'Toth')
+    LASTNAME_FORMAT = ( "Scharl, Arno, Weichselbraun, Albert and Dickinger, Astrid",
+                        "Wagner, Petra",
+                        "Toth, Christian Julius and Caesar, Julius H.",
+                      )
+    FIRSTNAME_FORMAT= ( "Arno Scharl, Albert Weichselbraun and Astrid Dickinger",
+                        "Petra Wagner",
+                        "Christian Julius Toth and Julius H. Caesar",
+                      )
+
+
+    def setUp(self):
+        self.name_obj = [ NameFormatter(name) for name in self.NAMES ]
+
+
+    def testGetFirstAuthorLastnameTest(self):
+        """ checks whether the class correctly determines the surname of the first author """
+        for name_obj, solution in zip(self.name_obj, self.LAST_NAMES):
+            assert name_obj.getFirstAuthorLastname() == solution 
+
+    def testGetAuthors(self):
+        """ tests whether the function corretly formats the authors """
+        for name_obj, solution in zip(self.name_obj, self.LASTNAME_FORMAT):
+            assert name_obj.getAuthors() == solution 
+
+        for name_obj, solution in zip(self.name_obj, self.FIRSTNAME_FORMAT): 
+            assert name_obj.getAuthors(NameFormatter.getFirstnameFirst) == solution 
  
-
-    class BibTexTest(TestCase):
-        
-        def testGetEntries(self):
-            """ read an input file """
-            b=BibTex( BIBTEX_TEST_FILE )
-            for bibtex_entry in b:
-                pass
-                #print bibtex_entry.getCitation()
-
-
-    class BibTexEntryTest(TestCase):
-        
-        def setUp(self):
-            self.bibtex_entry = _bibtex.next( _bibtex.open_file( BIBTEX_TEST_FILE, 100 ) )
-        
-        def testContains(self):
-            """ tests whether the contains functions works as advertised """
-            b = BibTexEntry( self.bibtex_entry )
-            self.assertTrue ( ('Albert',) in b )
-            self.assertTrue ( ('albert',) in b )
-            self.assertFalse( ('albert', 'Anna') in b )
-            self.assertFalse( ('Julius',) in b )
-
-            #print b.getCitation()
-            #print "xxxx", b.entry
-
-
-           
-
-
-    main()
 
 

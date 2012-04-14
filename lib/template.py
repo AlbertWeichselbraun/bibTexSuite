@@ -82,6 +82,7 @@ class Template(object):
         """ returns the abstract for the given bibtex entry """
         d=self._get_entry_dict( bibtex_entry, ('key', 'eprint', 'keywords', 'editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish' ) )
         d['citation'] = bibtex_entry.getCitation().replace("\n", "<br/>")
+        d['coins']    = bibtex_entry.getCoinsCitation()
         return self._evalTemplate( self._get_content("abstract.html"), d )
 
     

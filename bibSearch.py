@@ -30,6 +30,7 @@ path.append( LIB_DIR )
 from bibconfig import USER_CACHE, read_config
 
 OUTPUT_FORMAT = { 'citation' : 'getCitation',
+                  'coins'    : 'getCoinsCitation',
                   'wikipedia': 'getWikipediaCitation',
                   'bibtex'   : 'getBibTexCitation' }
 
@@ -40,9 +41,11 @@ def parse_options():
     parser.add_option("-b", "--bibtex", dest="bibtex", action="store_true",
                       help="output search results as bibtex snippets.")
     parser.add_option("-c", "--citation", dest="citation", action="store_true",
-                      help="output search results as wikipedia citations.")
+                      help="output search results as citations.")
     parser.add_option("-w", "--wikipedia", dest="wikipedia", action="store_true",
                       help="output search results as wikipedia citations.")
+    parser.add_option("-s", "--coins", dest="coins", action="store_true",
+                      help="output search results as coins citations.")
     parser.add_option("-p", "--path", dest="path", action="append", default=[],
                       help="add additional paths to the default search path.")
 
