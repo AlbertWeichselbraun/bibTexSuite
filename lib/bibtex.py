@@ -274,7 +274,7 @@ class Coins(object):
 
         result = [ ('rft.aufirst', first), ('rft.aulast', last) ] 
         for author in str(d['author']).split("and"):
-            result.append( ('rtf.au', author.strip() ) )
+            result.append( ('rft.au', author.strip() ) )
         return result
 
 
