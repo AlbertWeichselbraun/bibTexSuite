@@ -228,14 +228,14 @@ class Coins(object):
 
     def __init__(self):
         self.COIN_TRANSLATION_DICT = {
-            'title':   ('rtf.atitle', self._get, 'title'),
-            'journal': ('rtf.jtitle', self._get, 'journal'),
-            'year':    ('rft.date', self._get, 'year'),
-            'volume':  ('rtf.volume', self._get, 'volume'),
-            'issue':   ('rtf.issue', self._get, 'issue'),
-            'pages':   ('rtf.pages', self._get, 'pages'),
-            'eprint':  ('rtf.id', self._get, 'eprint'),
-            'author':  ('rtf.au', self._getAuthors, '')
+            'title':   ('rft.atitle', self._get, 'title'),
+            'journal': ('rft.jtitle', self._get, 'journal'),
+            'year':    ('rtt.date', self._get, 'year'),
+            'volume':  ('rft.volume', self._get, 'volume'),
+            'number':  ('rft.issue', self._get, 'number'),
+            'pages':   ('rft.pages', self._get, 'pages'),
+            'eprint':  ('rft.id', self._get, 'eprint'),
+            'author':  ('rft.au', self._getAuthors, '')
         }
 
     def getCoin(self, b):
@@ -259,14 +259,20 @@ class Coins(object):
 
     def _getGenre(self, entry_type):
         if entry_type.lower() in ('inproceedings', 'conference'):
-            return [ ('rtf.genre', 'proceeding') ]
+            return [ ('rft.genre', 'proceeding') ]
         elif entry_type.lower() in ('article', ):
-            return [ ('rtf.genre', 'article') ]
+            return [ ('rft.genre', 'article') ]
         else:
-            return [ ('rtf.genre', 'unknown') ]
+            return [ ('rft.genre', 'unknown') ]
 
     def _getAuthors(self, field, d, key):
-        result = []
+        first_author = d['author'].split("and")[0].strip()
+        if ", " in first_author:
+            last, first = first_author.split(", ", 1)
+        else:
+            first, last = first_author.split(" ", 1)
+
+        result = [ ('rft.aufirst', first), ('rft.aulast', last) ] 
         for author in str(d['author']).split("and"):
             result.append( ('rtf.au', author.strip() ) )
         return result
@@ -279,7 +285,7 @@ class Coins(object):
     @staticmethod
     def _getReferrer():
         """ returns a reference to the creator of the coin """
-        return [ ('rft_id', 'info:sid/semanticlab.net:bibTexSuite'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
+        return [ ('rfr_id', 'info:sid/semanticlab.net:bibTexSuite'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
 
 
 class TestCoins(object):
