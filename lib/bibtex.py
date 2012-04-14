@@ -230,7 +230,7 @@ class Coins(object):
         self.COIN_TRANSLATION_DICT = {
             'title':   ('rft.atitle', self._get, 'title'),
             'journal': ('rft.jtitle', self._get, 'journal'),
-            'year':    ('rtt.date', self._get, 'year'),
+            'year':    ('rft.date', self._get, 'year'),
             'volume':  ('rft.volume', self._get, 'volume'),
             'number':  ('rft.issue', self._get, 'number'),
             'pages':   ('rft.pages', self._get, 'pages'),
