@@ -1,6 +1,6 @@
 booktitle," %s"
 editor,", Ed. %s"
-address,", %s"
 number," (%s):"
 volume," %s"
-doi, doi:%s
+doi,"doi:%s"
+address,", %s"

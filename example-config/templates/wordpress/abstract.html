@@ -2,32 +2,43 @@
 
 <html>
 <head>
-<title>Abstract: %(title)s</title>
-<link rel="stylesheet" href="http://bach.wu-wien.ac.at/fides/css/layout.css" type="text/css">
+<title>%(title)s</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="../../css/style.css" type="text/css" media="screen" />
 </head>
 
 <body>
+<div id="page">
 
-    <h1>Publications</h1>
+    <h1 class="publication">%(title)s</h2>
 
-    <div class="highlighted-simple">
-    <h2 style="margin-top: 5px;">Citation</h2>
+    <h2>Citation</h3>
       <div style="border:1px dotted black; padding: 5px; background-color:#E1E1E1;">
         <p class="text">
-        <strong>%(author)s.</strong> %(citation)s
+        %(citation)s
+        %(coins)s
         </p>
 
       </div>
 
 
-                  <h2>Abstract</h2>
-                  <div style="border:1px dotted black; padding: 5px;  background-color:#E1E1E1;">
-                  
-                  <p class="text">
-                  %(abstract)s
-                  </p>
-                  </div>
+    <h2>Abstract</h2>
+    <div style="border:1px dotted black; padding: 5px;  background-color:#E1E1E1;">
+    
+    <p class="abstract">
+    %(abstract)s
+    </p>
+    === """<b>Keywords:</b> <span class="keywords">%(keywords)s</span>""" if d['keywords'].strip() else "" ===
     </div>
 
+    <h2>Downloads and Resources</h2>
+    <div style="border:1px dotted black; padding: 5px;  background-color:#E1E1E1;">
+       <ol>
+          <li><a class="bib" href="../bibtex/%(key)s.bib">Reference (BibTex)</a>
+          === """<li><a class="eprint" href="%(eprint)s">Full Article</a>""" if d['eprint'].strip() else "" ===
+       </ol>
+    </div>
+
+</div>
 </body>
 </html>

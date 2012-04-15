@@ -1,6 +1,6 @@
-abstract_url,<a class="abstract" href='%(abstract_url)s'>[Abstract]</a>
-url,<a class="related" href='%(url)s'>[URL]</a>
-eprint,<a class="download" href='%(eprint)s'>[PDF]</a>
-bibtex,<a class="bib" href='%(bibtex)s'>[BIB]</a>
-title,<a class="title" href="%(eprint)s">%(title)s</a>
-doi,<a class="doi" href="http://dx.doi.org/%(doi)s">doi:%(doi)s</a>
+abstract_url,<a class="abstract" title="Abstract" href='%(abstract_url)s'>[Abstract]</a>
+url,<a class="related" title="%(title)s" href='%(url)s'>[URL]</a>
+eprint,<a class="download" title="%(title)s" href='%(eprint)s'>[PDF]</a>
+bibtex,<a class="bib" title="Citation" href='%(bibtex)s'>[BIB]</a>
+title,<a class="title" title="%(title)s" href="%(eprint)s">%(title)s</a>
+doi,<a class="doi" title="DOI" href="http://dx.doi.org/%(doi)s">doi:%(doi)s</a>
