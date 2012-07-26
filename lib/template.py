@@ -12,6 +12,7 @@ RE_PYTHON_CODE=re.compile("===(.*?)===")
 def cleanup( txt ):
     """ basic cleanup's to prevent formatting errors """
     txt = txt.replace(", ,", ", ")
+    txt = txt.replace(",  ,", ", ")
     txt = txt.replace(", :", ", ")
     return txt
 
