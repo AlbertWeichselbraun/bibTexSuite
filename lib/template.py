@@ -37,8 +37,8 @@ class Template(object):
             self._attr_translation_tbl  = self._get_translation_table( "attr.csv" )
             self._str_translation_tbl   = self._get_translation_table( "str.csv" )
             self._file_translation_tbl  = self._get_translation_table( "files.csv")
-            self._publication_blacklist = () 
-        
+            self._publication_blacklist = ()
+
 
 
     def getHtmlFile(self, bibtex_entry_list, publish_types=None):
@@ -50,7 +50,7 @@ class Template(object):
 
         bd = self._get_per_type_listing( bibtex_entry_list )
         for tp in self._default_order:
-            if not bd.has_key( tp ): 
+            if not bd.has_key( tp ):
                 continue
             if publish_types is not None and tp not in publish_types:
                 continue
@@ -63,19 +63,19 @@ class Template(object):
         return "\n".join(html)
 
     def _evalTemplate(self, template, d):
-        """ evaluates python expressions in a template 
+        """ evaluates python expressions in a template
             @param template: the text of the template
             @param d: a dictionary with values to consider
             @returns the expanded template
         """
         # string expansion
-        result = template % d  
+        result = template % d
 
         def replace(x, d=d):
             return eval( x.group(1) )
 
         # evaluate inline python code
-        result = RE_PYTHON_CODE.sub( replace, result ) 
+        result = RE_PYTHON_CODE.sub( replace, result )
         return result
 
 
@@ -84,7 +84,7 @@ class Template(object):
         d=self._get_entry_dict( bibtex_entry, ('key', 'eprint', 'keywords', 'editor', 'pages', 'journal', 'address', 'volume', 'number', 'booktitle', '_bibpublish' ) )
         return self._evalTemplate( self._get_content("abstract.html"), d )
 
-    
+
     def setDescriptor(self, bibtex_entry, d):
         """ sets the descriptor for the given bibtex entry """
         d.update(bibtex_entry.entry)
@@ -112,9 +112,11 @@ class Template(object):
         os.mkdir( os.path.join(dest_dir, "abstract") )
         os.mkdir( os.path.join(dest_dir, "bibtex") )
         os.mkdir( os.path.join(dest_dir, "pdf") )
-        shutil.copytree( self._get_file_name('icons'), os.path.join(dest_dir, 'icons') )
-        shutil.copytree( self._get_file_name('css'), os.path.join(dest_dir, 'css') )
-       
+        if exists(self._get_file_name('icons')):
+            shutil.copytree( self._get_file_name('icons'), os.path.join(dest_dir, 'icons') )
+        if exists(self._get_file_name('css')):
+            shutil.copytree( self._get_file_name('css'), os.path.join(dest_dir, 'css') )
+
 
     def _get_translation_table(self, fname):
         """ returns the translation table for formating items """
@@ -139,10 +141,10 @@ class Template(object):
         for k in keys:
             if not k in data:
                 data[k] = ''
-            elif k in self._attr_translation_tbl: 
+            elif k in self._attr_translation_tbl:
                 data[k] = self._attr_translation_tbl.get(k) % data[k]
         return data
-                
+
 
     def _get_per_type_listing( self, bibtex_entry_list ):
         """ returns a dictinary with the publication_type + publications """
@@ -157,7 +159,7 @@ class Template(object):
 
     def _get_head(self):
         """ returns the file's head """
-        return self._get_content("head.html") 
+        return self._get_content("head.html")
 
 
     def _get_foot(self):
