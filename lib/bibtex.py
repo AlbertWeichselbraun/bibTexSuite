@@ -1,104 +1,114 @@
 #!/usr/bin/env python
 
-""" handles bibtex objects based on the _bibtex library """
+""" handles bibtex objects based on the bibtexparser library """
 
-# (C)opyrights 2008-2009 by Albert Weichselbraun <albert@weichselbraun.net>
-# 
+# (C)opyrights 2008-2020 by Albert Weichselbraun <albert@weichselbraun.net>
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import _bibtex
+import bibtexparser
 from operator import and_
 from os.path import basename
 from urllib import urlencode
 
 BIBTEX_TEST_FILE = "self.bib"
 
-cleanup = lambda x: x.replace("{", "").replace("}", "").replace("\"", "")
-get_longest_word = lambda s: max( [ (len(w), w) for w in s.split() ] )[1]
+
+def cleanup(s):
+    return s.replace("{", "").replace("}", "").replace("\"", "")
+
+
+def get_longest_word(s):
+    return max([(len(w), w) for w in s.split()])[1]
 
 
 class NameFormatter(object):
     """ handles different name formats """
 
     def __init__(self, names):
-        self.names = map( self.getLastnameFirst,  names.strip().split(" and "))
+        self.names = map(self.getLastnameFirst, names.strip().split(" and "))
 
-    
+    def __len__(self):
+        '''
+        Returns:
+            the number of names in the entry.
+        '''
+        return len(self.names)
+
     @staticmethod
     def getLastnameFirst(name):
         """ converts a name to the format 'lastname, firstname(s)' """
-        if "," in name or not name: 
+        if "," in name or not name:
             return name
 
         firstnames, lastname = name.split()[:-1], name.split()[-1:][0]
-        return "%s, %s" % (lastname, " ".join(firstnames) )
-
+        return "{}, {}".format(lastname, " ".join(firstnames))
 
     @staticmethod
     def getFirstnameFirst(name):
         """ converts a name to the format 'firstname(s) lastname' """
-        if not "," in name:
+        if "," not in name:
             return name
 
         lastname, firstnames = name.split(", ")
-        return "%s %s" % (firstnames, lastname)
-
+        return "{} {}".format(firstnames, lastname)
 
     def getFirstAuthorLastname(self):
         """ returns the lastname of the first author """
         return self.names[0].split(", ")[0]
 
-
     def getAuthors(self, format_function=None):
-        """ returns the authors as used in a citation, formatted using an
-            optional format_function """
-
+        """
+        Returns:
+            the authors as used in a citation, formatted using an optional
+            format_function.
+        """
         authors = map(format_function, self.names)
-        if len(authors)==1:
+        if len(authors) == 1:
             return authors[0]
 
-        return "%s and %s" % (", ".join(authors[:-1]), authors[-1])
-
+        return "{} and {}".format(", ".join(authors[:-1]), authors[-1])
 
     def getBibTexAuthors(self):
-        """ returns the author list in the BibTeX format 'a1 and a2 and a3...' """
+        '''
+        Returns:
+            the author list in the BibTeX format 'a1 and a2 and a3...'
+        '''
         return " and ".join(self.names)
-           
-        
+
 
 class BibTexEntry(object):
     """ handles a single bibtex entry """
 
     def __init__(self, bibtex_entry, path=""):
-        """ @param[in] bibtex_entry 
-            @param[in] path          (optional path to the bib file containing the entry)
         """
-        self.key, self.type, tmp, tmp, entries  = bibtex_entry
-        self.orig_entry = dict( [ (key, cleanup(_bibtex.get_native(value))) for key, value in entries.iteritems() ] )
-        self.entry = dict( [ (key, cleanup(value)) for key, value in self.orig_entry.iteritems() ] )
+        Args:
+            bibtex_entry: the dictionary of the bibtex entry
+            path: optional path of the bib file containing the entry
+        """
+        self.orig_entry = bibtex_entry
+        self.entry = {key: cleanup(value)
+                      for key, value in bibtex_entry.items()}
 
-
-        self.path  = path
-        if 'author' in self.entry:
-            self.entry['author'] = NameFormatter(self.entry['author']).getBibTexAuthors()
-
-
+        self.path = path
+        # standardize author entries
+        self.entry['author'] = NameFormatter(self.entry.get('author', 0))
 
     def __cmp__(self, o):
         """ sorts bibtex entries based on the publishing year """
-        sy, oy = self.entry.get('year',0), o.entry.get('year', 0)
+        sy, oy = self.entry.get('year', 0), o.entry.get('year', 0)
         if sy == oy:
             return 0
         elif sy > oy:
@@ -106,48 +116,49 @@ class BibTexEntry(object):
         else:
             return -1
 
-
     def __contains__(self, search_terms):
-        """ returns true if any of the BibTexEntry's fields contains the given string """
-        textRep = " ".join( map(str.lower, self.entry.values()) ) + self.key
-        return reduce(and_, [ needle.lower() in textRep for needle in search_terms])
-    
+        '''
+        Returns:
+            True if any of the BibTexEntry's fields contains the given string
+        '''
+        entry_text = ' '.join([v.lower() for v in self.entry.values()])
+        for term in search_terms:
+            if term in entry_text:
+                return True
+
+        return False
+
     def getNumAuthors(self):
         """ returns the number of authors """
-        if not 'author' in self.entry:
-            return 0
-        else:
-            return len(self.entry['author'].split(" and "))
+        return len(self.entry['author'])
 
     def getAuthor(self):
         """ returns the author for the given entry """
-        return NameFormatter(self.entry.get('author', '')).getAuthors()
-
+        return self.entry['author'].getAuthors()
 
     def getFilename(self, extension=""):
-        """ returns the filename for the given entry 
-            (or the ieee-filename if possible) 
+        """ returns the filename for the given entry
+            (or the ieee-filename if possible)
         """
         if 'file' in self.entry:
             return self.entry['file'].split(":")[1]
         else:
-            return self.getIEEEFilename()+extension 
+            return self.getIEEEFilename()+extension
 
     def getIEEEFilename(self):
         """ composes the IEEE filename for the entry:
-              surname-titleword200x.pdf 
+              surname-titleword200x.pdf
         """
-        s="%s-%s%s" % (NameFormatter(self.entry.get('author', '')).getFirstAuthorLastname(), get_longest_word(self.getTitle()), self.getYear())
+        s = "%s-%s%s" % (self.entry['author'].getFirstAuthorLastname(),
+                         get_longest_word(self.getTitle()),
+                         self.getYear())
         return s
-
 
     def getTitle(self):
         return self.entry['title']
 
-
     def getYear(self):
         return self.entry.get('year', '')
-
 
     def getOutlet(self):
         """ returns the entrie's outlet """
@@ -164,16 +175,14 @@ class BibTexEntry(object):
         outlet = filter(None, outlet)
         return ", ".join(outlet)
 
-
     def getCitation(self, filter_term = None):
         """ returns the citation of the given article """
         if not filter_term or filter_term in self:
             return  """[%s, %s] %s (%s). ''%s'', %s""" % \
-                     (self.key, basename(self.path), self.getAuthor(), self.getYear(), self.getTitle(), self.getOutlet() ) 
+                     (self.key, basename(self.path), self.getAuthor(), self.getYear(), self.getTitle(), self.getOutlet() )
         else:
             return None
 
-       
     def getWikipediaCitation(self, filter_term = None):
         """ returns the wikipedia citation for the given article """
         if not filter_term or filter_term in self:
@@ -181,12 +190,10 @@ class BibTexEntry(object):
         else:
             return None
 
-
     def getBibTexCitation(self, filter_term = None):
         """ returns the bibTexCitation for the given item """
-        entries = [ "   %s={%s}" % (key, value) for key, value in self.orig_entry.iteritems() ] 
+        entries = [ "   %s={%s}" % (key, value) for key, value in self.orig_entry.iteritems() ]
         return "@%s{%s,\n%s\n}" % ( self.type.upper(), self.key, ",\n".join(entries) )
-
 
     def getCoinsCitation(self, filter_term = None):
         """ returns the coins citation for the given item """
@@ -195,34 +202,30 @@ class BibTexEntry(object):
         else:
             return None
 
-
     def __str__(self):
         """ returns a string representation of the item """
         return "<BibTexEntry %s>" % self.key
-
 
 
 class BibTex(object):
     """ handles bibtex objects based n the _bibtex library """
 
     def __init__(self, path):
-        self.path    = path
-        self.fhandle = _bibtex.open_file(path, 100)
+        self.path = path
+        with open(path) as bib_file:
+            self.bibtex_entries = bibtexparser.load(bib_file).entries
 
     def __iter__(self):
         """ this class implements the iterator interface """
-        return self
-    
+        return self.bibtex_entries.__iter__
+
     def next(self):
         """ iterator interface: get next bibtex entry """
         try:
-            return BibTexEntry( _bibtex.next(self.fhandle), self.path )
+            return self.bibtex_entries.next()
         except TypeError:
             raise StopIteration
 
-
-
-      
 
 class Coins(object):
 
@@ -256,7 +259,6 @@ class Coins(object):
     def _get(self, field, d, key):
         return [ (field, d.get(key)) ]
 
-
     def _getGenre(self, entry_type):
         if entry_type.lower() in ('inproceedings', 'conference'):
             return [ ('rft.genre', 'proceeding'), ('rft_val_fmt', 'info:ofi/fmt:kev:mtx:journal') ]
@@ -276,15 +278,13 @@ class Coins(object):
         else:
             first, last = first_author.split(" ", 1)
 
-        result = [ ('rft.aufirst', first), ('rft.aulast', last) ] 
+        result = [ ('rft.aufirst', first), ('rft.aulast', last) ]
         for author in str(d['author']).split("and"):
             result.append( ('rft.au', author.strip() ) )
         return result
 
-
     def _getSkeleton(self):
         return """<span class="Z3988" title="ctx_ver=Z39.88-2004&amp;%s" /> """
-
 
     @staticmethod
     def _getReferrer():
@@ -300,32 +300,33 @@ class TestCoins(object):
         self.bibtex_entry = BibTexEntry( _bibtex.next( _bibtex.open_file( os_join( dirname(__file__), "../test", BIBTEX_TEST_FILE ), 100 ) ) )
 
     def testBibtex(self):
-        print Coins().getCoin( self.bibtex_entry )
+        print(Coins().getCoin(self.bibtex_entry))
 
 
 class TextBibTex(object):
-        
+
     def testGetEntries(self):
         """ read an input file """
-        b=BibTex( BIBTEX_TEST_FILE )
+        b = BibTex(BIBTEX_TEST_FILE)
         for bibtex_entry in b:
             pass
             #print bibtex_entry.getCitation()
 
 
 class TestBibTexEntry(object):
-    
+
     def setUp(self):
         from os.path import dirname, join as os_join
-        self.bibtex_entry = _bibtex.next( _bibtex.open_file( os_join( dirname(__file__), "../test", BIBTEX_TEST_FILE ), 100 ) )
-    
+        fname = os_join(dirname(__file__), "../test", BIBTEX_TEST_FILE)
+        self.bibtex_entry = BibTex(fname).next()
+
     def testContains(self):
         """ tests whether the contains functions works as advertised """
-        b = BibTexEntry( self.bibtex_entry )
-        assert  ('Albert',) in b 
-        assert ('albert',) in b 
-        assert ('albert', 'Anna') not in b 
-        assert  ('Julius',) not in b 
+        b = BibTexEntry(self.bibtex_entry)
+        assert  ('Albert',) in b
+        assert ('albert',) in b
+        assert ('albert', 'Anna') not in b
+        assert  ('Julius',) not in b
 
 
 class TestNameFormatter(object):
@@ -354,15 +355,12 @@ class TestNameFormatter(object):
     def testGetFirstAuthorLastnameTest(self):
         """ checks whether the class correctly determines the surname of the first author """
         for name_obj, solution in zip(self.name_obj, self.LAST_NAMES):
-            assert name_obj.getFirstAuthorLastname() == solution 
+            assert name_obj.getFirstAuthorLastname() == solution
 
     def testGetAuthors(self):
         """ tests whether the function corretly formats the authors """
         for name_obj, solution in zip(self.name_obj, self.LASTNAME_FORMAT):
-            assert name_obj.getAuthors() == solution 
+            assert name_obj.getAuthors() == solution
 
-        for name_obj, solution in zip(self.name_obj, self.FIRSTNAME_FORMAT): 
-            assert name_obj.getAuthors(NameFormatter.getFirstnameFirst) == solution 
- 
-
-
+        for name_obj, solution in zip(self.name_obj, self.FIRSTNAME_FORMAT):
+            assert name_obj.getAuthors(NameFormatter.getFirstnameFirst) == solution
